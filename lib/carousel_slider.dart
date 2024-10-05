@@ -114,6 +114,18 @@ class CarouselSliderController {
     }
   }
 
+  goToSlide(int slide, {Duration? transitionDuration}) {
+    if (_state != null && _state!.mounted) {
+      final currentPage = _state!.getCurrentPage();
+      final currentSlide = _state!.getCurrentSlide();
+
+      final slideChange = slide - currentSlide;
+      final page = currentPage + slideChange;
+
+      _state!._goToPage(page, transitionDuration);
+    }
+  }
+
   setAutoSliderEnabled(bool isEnabled) {
     if (_state != null && _state!.mounted) {
       _state!._setAutoSliderEnabled(isEnabled);
@@ -206,6 +218,22 @@ class _CarouselSliderState extends State<CarouselSlider> {
     _initCarouselSliderController();
     _initPageController();
     _setAutoSliderEnabled(_isPlaying);
+  }
+
+  void currentPage(int index) {
+    _currentPage = index;
+  }
+
+  void currentSlide(int index) {
+    _currentPage = index % widget.itemCount;
+  }
+
+  int getCurrentPage() {
+    return _currentPage!;
+  }
+
+  int getCurrentSlide() {
+    return _currentPage! % widget.itemCount;
   }
 
   void _initCarouselSliderController() {
