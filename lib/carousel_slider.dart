@@ -12,7 +12,7 @@ export './carousel_slider_indicators.dart';
 export './carousel_slider_transforms.dart';
 
 const _kMaxValue = 200000000000;
-const _kMiddleValue = 100000;
+const kMiddleValue = 100000;
 
 typedef CarouselSlideBuilder = Widget Function(int index);
 
@@ -96,6 +96,12 @@ class CarouselSlider extends StatefulWidget {
 class CarouselSliderController {
   _CarouselSliderState? _state;
 
+  bounce([Duration? transitionDuration]) {
+    if (_state != null && _state!.mounted) {
+      _state!._nextPage(transitionDuration);
+    }
+  }
+
   nextPage([Duration? transitionDuration]) {
     if (_state != null && _state!.mounted) {
       _state!._nextPage(transitionDuration);
@@ -120,9 +126,11 @@ class CarouselSliderController {
       final currentSlide = _state!.getCurrentSlide();
 
       final slideChange = slide - currentSlide;
-      final page = currentPage + slideChange;
+      final nextPage = currentPage + slideChange;
 
-      _state!._goToPage(page, transitionDuration);
+      print('goingToSlide: slide: $slide, currentSlide: $currentSlide, currentPage: $currentPage, nextPage: $nextPage');
+
+      _state!._goToPage(nextPage, transitionDuration);
     }
   }
 
@@ -130,6 +138,27 @@ class CarouselSliderController {
     if (_state != null && _state!.mounted) {
       _state!._setAutoSliderEnabled(isEnabled);
     }
+  }
+
+  getCurrentPage() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getCurrentPage();
+    }
+    return 0;
+  }
+
+  getCurrentSlide() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getCurrentSlide();
+    }
+    return 0;
+  }
+
+  getInitialPage() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getInitialPage();
+    }
+    return 0;
   }
 
   dispose() {
@@ -247,7 +276,7 @@ class _CarouselSliderState extends State<CarouselSlider> {
     _pageController = PageController(
       viewportFraction: widget.viewportFraction,
       keepPage: widget.keepPage,
-      initialPage: widget.unlimitedMode ? _kMiddleValue * widget.itemCount + _currentPage! : _currentPage!,
+      initialPage: getInitialPage(),
     );
     _pageController!.addListener(() {
       setState(() {
@@ -256,6 +285,9 @@ class _CarouselSliderState extends State<CarouselSlider> {
       });
     });
   }
+
+  int getInitialPage() => widget.unlimitedMode ? kMiddleValue + _currentPage! : _currentPage!;
+  // int getInitialPage() => widget.unlimitedMode ? kMiddleValue * widget.itemCount + _currentPage! : _currentPage!;
 
   void _nextPage(Duration? transitionDuration) {
     _pageController!.nextPage(
