@@ -108,6 +108,12 @@ class CarouselSliderController {
     }
   }
 
+  goToPage(int page, {Duration? transitionDuration}) {
+    if (_state != null && _state!.mounted) {
+      _state!._goToPage(page, transitionDuration);
+    }
+  }
+
   setAutoSliderEnabled(bool isEnabled) {
     if (_state != null && _state!.mounted) {
       _state!._setAutoSliderEnabled(isEnabled);
@@ -160,17 +166,15 @@ class _CarouselSliderState extends State<CarouselSlider> {
               physics: widget.scrollPhysics,
               itemBuilder: (context, index) {
                 final slideIndex = index % widget.itemCount;
-                Widget slide = widget.children == null
-                    ? widget.slideBuilder!(slideIndex)
-                    : widget.children![slideIndex];
-                return widget.slideTransform.transform(context, slide, index,
-                    _currentPage, _pageDelta, widget.itemCount);
+                Widget slide =
+                    widget.children == null ? widget.slideBuilder!(slideIndex) : widget.children![slideIndex];
+                return widget.slideTransform
+                    .transform(context, slide, index, _currentPage, _pageDelta, widget.itemCount);
               },
             ),
           ),
         if (widget.slideIndicator != null && widget.itemCount > 0)
-          widget.slideIndicator!.build(
-              _currentPage! % widget.itemCount, _pageDelta, widget.itemCount),
+          widget.slideIndicator!.build(_currentPage! % widget.itemCount, _pageDelta, widget.itemCount),
       ],
     );
   }
@@ -215,9 +219,7 @@ class _CarouselSliderState extends State<CarouselSlider> {
     _pageController = PageController(
       viewportFraction: widget.viewportFraction,
       keepPage: widget.keepPage,
-      initialPage: widget.unlimitedMode
-          ? _kMiddleValue * widget.itemCount + _currentPage!
-          : _currentPage!,
+      initialPage: widget.unlimitedMode ? _kMiddleValue * widget.itemCount + _currentPage! : _currentPage!,
     );
     _pageController!.addListener(() {
       setState(() {
@@ -236,6 +238,14 @@ class _CarouselSliderState extends State<CarouselSlider> {
 
   void _previousPage(Duration? transitionDuration) {
     _pageController!.previousPage(
+      duration: transitionDuration ?? widget.autoSliderTransitionTime,
+      curve: widget.autoSliderTransitionCurve,
+    );
+  }
+
+  void _goToPage(int page, Duration? transitionDuration) {
+    _pageController!.animateToPage(
+      page,
       duration: transitionDuration ?? widget.autoSliderTransitionTime,
       curve: widget.autoSliderTransitionCurve,
     );
