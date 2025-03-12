@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -51,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
     padding: EdgeInsets.only(bottom: 32),
   );
   bool _isPlaying = true;
-  CarouselSliderController _sliderController;
+  late CarouselSliderController _sliderController;
 
   @override
   void initState() {

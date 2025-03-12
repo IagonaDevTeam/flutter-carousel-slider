@@ -10,7 +10,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Carousel Slider',
-      home: MyHomePage(title: 'Flutter Carousel Slider'),
+      home: MyHomePage(
+        title: 'Flutter Carousel Slider',
+        key: null,
+      ),
     );
   }
 }
@@ -18,7 +21,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final String title;
 
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({required Key? key, required this.title}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -46,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _isPlaying = true;
 
-  CarouselSliderController _sliderController;
+  late CarouselSliderController _sliderController;
 
   @override
   void initState() {
@@ -78,13 +81,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               slideTransform: CubeTransform(),
+              autoSliderTransitionTime: Duration(milliseconds: 800),
               slideIndicator: CircularSlideIndicator(
                 padding: EdgeInsets.only(bottom: 32),
                 indicatorBorderColor: Colors.black,
               ),
               itemCount: colors.length,
               initialPage: 0,
-              enableAutoSlider: true,
+              enableAutoSlider: false,
+              onSlideChanged: (index) {
+                print('could hide indicators, aso update timertype - Current slide index: $index');
+              },
             ),
           ),
           Padding(

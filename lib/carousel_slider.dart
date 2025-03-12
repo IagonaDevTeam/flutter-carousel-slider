@@ -12,7 +12,7 @@ export './carousel_slider_indicators.dart';
 export './carousel_slider_transforms.dart';
 
 const _kMaxValue = 200000000000;
-const _kMiddleValue = 100000;
+const kMiddleValue = 100000;
 
 typedef CarouselSlideBuilder = Widget Function(int index);
 
@@ -96,6 +96,12 @@ class CarouselSlider extends StatefulWidget {
 class CarouselSliderController {
   _CarouselSliderState? _state;
 
+  bounce([Duration? transitionDuration]) {
+    if (_state != null && _state!.mounted) {
+      _state!._nextPage(transitionDuration);
+    }
+  }
+
   nextPage([Duration? transitionDuration]) {
     if (_state != null && _state!.mounted) {
       _state!._nextPage(transitionDuration);
@@ -108,10 +114,51 @@ class CarouselSliderController {
     }
   }
 
+  goToPage(int page, {Duration? transitionDuration}) {
+    if (_state != null && _state!.mounted) {
+      _state!._goToPage(page, transitionDuration);
+    }
+  }
+
+  goToSlide(int slide, {Duration? transitionDuration}) {
+    if (_state != null && _state!.mounted) {
+      final currentPage = _state!.getCurrentPage();
+      final currentSlide = _state!.getCurrentSlide();
+
+      final slideChange = slide - currentSlide;
+      final nextPage = currentPage + slideChange;
+
+      print('goingToSlide: slide: $slide, currentSlide: $currentSlide, currentPage: $currentPage, nextPage: $nextPage');
+
+      _state!._goToPage(nextPage, transitionDuration);
+    }
+  }
+
   setAutoSliderEnabled(bool isEnabled) {
     if (_state != null && _state!.mounted) {
       _state!._setAutoSliderEnabled(isEnabled);
     }
+  }
+
+  getCurrentPage() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getCurrentPage();
+    }
+    return 0;
+  }
+
+  getCurrentSlide() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getCurrentSlide();
+    }
+    return 0;
+  }
+
+  getInitialPage() {
+    if (_state != null && _state!.mounted) {
+      return _state!.getInitialPage();
+    }
+    return 0;
   }
 
   dispose() {
@@ -160,17 +207,15 @@ class _CarouselSliderState extends State<CarouselSlider> {
               physics: widget.scrollPhysics,
               itemBuilder: (context, index) {
                 final slideIndex = index % widget.itemCount;
-                Widget slide = widget.children == null
-                    ? widget.slideBuilder!(slideIndex)
-                    : widget.children![slideIndex];
-                return widget.slideTransform.transform(context, slide, index,
-                    _currentPage, _pageDelta, widget.itemCount);
+                Widget slide =
+                    widget.children == null ? widget.slideBuilder!(slideIndex) : widget.children![slideIndex];
+                return widget.slideTransform
+                    .transform(context, slide, index, _currentPage, _pageDelta, widget.itemCount);
               },
             ),
           ),
         if (widget.slideIndicator != null && widget.itemCount > 0)
-          widget.slideIndicator!.build(
-              _currentPage! % widget.itemCount, _pageDelta, widget.itemCount),
+          widget.slideIndicator!.build(_currentPage! % widget.itemCount, _pageDelta, widget.itemCount),
       ],
     );
   }
@@ -204,6 +249,22 @@ class _CarouselSliderState extends State<CarouselSlider> {
     _setAutoSliderEnabled(_isPlaying);
   }
 
+  void currentPage(int index) {
+    _currentPage = index;
+  }
+
+  void currentSlide(int index) {
+    _currentPage = index % widget.itemCount;
+  }
+
+  int getCurrentPage() {
+    return _currentPage!;
+  }
+
+  int getCurrentSlide() {
+    return _currentPage! % widget.itemCount;
+  }
+
   void _initCarouselSliderController() {
     if (widget.controller != null) {
       widget.controller!._state = this;
@@ -215,9 +276,7 @@ class _CarouselSliderState extends State<CarouselSlider> {
     _pageController = PageController(
       viewportFraction: widget.viewportFraction,
       keepPage: widget.keepPage,
-      initialPage: widget.unlimitedMode
-          ? _kMiddleValue * widget.itemCount + _currentPage!
-          : _currentPage!,
+      initialPage: getInitialPage(),
     );
     _pageController!.addListener(() {
       setState(() {
@@ -226,6 +285,9 @@ class _CarouselSliderState extends State<CarouselSlider> {
       });
     });
   }
+
+  int getInitialPage() => widget.unlimitedMode ? kMiddleValue + _currentPage! : _currentPage!;
+  // int getInitialPage() => widget.unlimitedMode ? kMiddleValue * widget.itemCount + _currentPage! : _currentPage!;
 
   void _nextPage(Duration? transitionDuration) {
     _pageController!.nextPage(
@@ -236,6 +298,14 @@ class _CarouselSliderState extends State<CarouselSlider> {
 
   void _previousPage(Duration? transitionDuration) {
     _pageController!.previousPage(
+      duration: transitionDuration ?? widget.autoSliderTransitionTime,
+      curve: widget.autoSliderTransitionCurve,
+    );
+  }
+
+  void _goToPage(int page, Duration? transitionDuration) {
+    _pageController!.animateToPage(
+      page,
       duration: transitionDuration ?? widget.autoSliderTransitionTime,
       curve: widget.autoSliderTransitionCurve,
     );
